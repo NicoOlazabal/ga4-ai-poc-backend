@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from google.cloud import bigquery
+from google.oauth2 import service_account
 import anthropic
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
@@ -26,16 +27,20 @@ GCP_PROJECT_ID    = os.getenv("GCP_PROJECT_ID", "your-gcp-project")
 BQ_DATASET        = os.getenv("BQ_DATASET", "analytics_XXXXXXXXX")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-# Se GOOGLE_CREDENTIALS_JSON estiver definida (Railway), escreve o arquivo
-_creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
-if _creds_json:
-    _creds_path = Path(__file__).parent / "service-account.json"
-    _creds_path.write_text(_creds_json)
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(_creds_path)
-
 # ─── Clients ──────────────────────────────────────────────────────────────────
 
-bq_client     = bigquery.Client(project=GCP_PROJECT_ID)
+# Usa GOOGLE_CREDENTIALS_JSON (Railway) ou service-account.json local
+_creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON")
+if _creds_json_str:
+    _creds_info = json.loads(_creds_json_str)
+    _credentials = service_account.Credentials.from_service_account_info(
+        _creds_info,
+        scopes=["https://www.googleapis.com/auth/bigquery"]
+    )
+    bq_client = bigquery.Client(project=GCP_PROJECT_ID, credentials=_credentials)
+else:
+    bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
 claude_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # ─── Schema helper ────────────────────────────────────────────────────────────
