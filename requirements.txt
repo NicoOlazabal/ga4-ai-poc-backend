@@ -5,3 +5,4 @@ google-cloud-bigquery>=3.25.0
 google-auth>=2.34.0
 pydantic>=2.10.0
 python-dotenv>=1.0.1
+httpx>=0.25.0
