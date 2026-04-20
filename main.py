@@ -11,12 +11,16 @@ from datetime import datetime, timedelta
 from typing import Optional
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 import anthropic
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
@@ -26,6 +30,28 @@ load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 GCP_PROJECT_ID    = os.getenv("GCP_PROJECT_ID", "your-gcp-project")
 BQ_DATASET        = os.getenv("BQ_DATASET", "analytics_XXXXXXXXX")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GOOGLE_CLIENT_ID  = os.getenv("GOOGLE_CLIENT_ID", "")
+ALLOWED_EMAILS    = {e.strip() for e in os.getenv("ALLOWED_EMAILS", "").split(",") if e.strip()}
+
+# ─── Auth ─────────────────────────────────────────────────────────────────────
+
+_bearer = HTTPBearer(auto_error=False)
+
+async def get_current_user(creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer)) -> str:
+    if not GOOGLE_CLIENT_ID:
+        return "dev@local"
+    if not creds:
+        raise HTTPException(status_code=401, detail="Token ausente")
+    try:
+        info = google_id_token.verify_oauth2_token(
+            creds.credentials, google_requests.Request(), GOOGLE_CLIENT_ID
+        )
+        email = info.get("email", "")
+        if ALLOWED_EMAILS and email not in ALLOWED_EMAILS:
+            raise HTTPException(status_code=403, detail=f"Acesso negado: {email}")
+        return email
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
 
 # ─── Clients ──────────────────────────────────────────────────────────────────
 
@@ -87,10 +113,11 @@ REGRAS IMPORTANTES:
 # ─── Pydantic models ──────────────────────────────────────────────────────────
 
 class QuestionRequest(BaseModel):
-    question: str
+    question:   str
     date_start: Optional[str] = None   # YYYYMMDD
     date_end:   Optional[str] = None   # YYYYMMDD
     max_rows:   Optional[int] = 500
+    language:   Optional[str] = "Português"
 
 class QueryResponse(BaseModel):
     question:   str
@@ -157,8 +184,8 @@ def execute_bigquery(sql: str, max_rows: int = 500) -> tuple[list, int]:
     return rows, bytes_processed
 
 
-def generate_insight(question: str, sql: str, data: list) -> str:
-    """Usa Claude para interpretar os dados e gerar insight em português."""
+def generate_insight(question: str, sql: str, data: list, language: str = "Português") -> str:
+    """Usa Claude para interpretar os dados e gerar insight no idioma especificado."""
 
     data_sample = json.dumps(data[:50], ensure_ascii=False, default=str)
 
@@ -180,7 +207,7 @@ Com base nesses dados reais:
 3. Identifique padrões ou anomalias importantes
 4. Sugira 1-2 ações práticas baseadas nos dados
 
-Responda em português, de forma concisa mas completa (máx. 300 palavras).
+Responda em {language}, de forma concisa mas completa (máx. 300 palavras).
 Use emojis com moderação para destacar pontos-chave.
 """
 
@@ -215,13 +242,21 @@ app.add_middleware(
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
+@app.get("/config")
+def get_config():
+    return {"google_client_id": GOOGLE_CLIENT_ID, "auth_enabled": bool(GOOGLE_CLIENT_ID)}
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
+
 @app.get("/health")
 def health():
     return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
 
 
 @app.post("/ask", response_model=QueryResponse)
-async def ask(req: QuestionRequest):
+async def ask(req: QuestionRequest, user: str = Depends(get_current_user)):
     """
     Endpoint principal: recebe pergunta em linguagem natural,
     gera SQL, executa no BigQuery e retorna insight da IA.
@@ -245,7 +280,7 @@ async def ask(req: QuestionRequest):
 
     try:
         # 3. Gera insight com IA
-        insight = generate_insight(req.question, sql, data)
+        insight = generate_insight(req.question, sql, data, req.language or "Português")
     except Exception as e:
         insight = f"(Erro ao gerar insight: {e})"
 
