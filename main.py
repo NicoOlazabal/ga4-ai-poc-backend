@@ -252,7 +252,7 @@ def serve_frontend():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat(), "version": "2.0.0"}
 
 
 @app.post("/ask", response_model=QueryResponse)
