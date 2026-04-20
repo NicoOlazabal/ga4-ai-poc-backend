@@ -310,3 +310,4 @@ def sample_questions():
             "Quais eventos aconteceram mais vezes ontem?",
         ]
     }
+
