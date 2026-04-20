@@ -26,6 +26,13 @@ GCP_PROJECT_ID    = os.getenv("GCP_PROJECT_ID", "your-gcp-project")
 BQ_DATASET        = os.getenv("BQ_DATASET", "analytics_XXXXXXXXX")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
+# Se GOOGLE_CREDENTIALS_JSON estiver definida (Railway), escreve o arquivo
+_creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+if _creds_json:
+    _creds_path = Path(__file__).parent / "service-account.json"
+    _creds_path.write_text(_creds_json)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(_creds_path)
+
 # ─── Clients ──────────────────────────────────────────────────────────────────
 
 bq_client     = bigquery.Client(project=GCP_PROJECT_ID)
