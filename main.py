@@ -29,8 +29,8 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # ─── Clients ──────────────────────────────────────────────────────────────────
 
-# Usa GOOGLE_CREDENTIALS_JSON (Railway) ou service-account.json local
 _creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON")
+print(f"[DEBUG] GOOGLE_CREDENTIALS_JSON present: {bool(_creds_json_str)}, len: {len(_creds_json_str) if _creds_json_str else 0}")
 if _creds_json_str:
     _creds_info = json.loads(_creds_json_str)
     _credentials = service_account.Credentials.from_service_account_info(
