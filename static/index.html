@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GA4 AI Analytics — POC</title>
+<title>GA4 AI Analytics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
@@ -29,35 +29,88 @@
 }
 
 html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-}
-
-/* ─── Noise texture overlay ─────────────────────────────────────────── */
 body::before {
-  content: '';
-  position: fixed; inset: 0;
+  content: ''; position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
-  pointer-events: none; z-index: 9999;
-  opacity: .6;
+  pointer-events: none; z-index: 9999; opacity: .6;
 }
+
+/* ─── Overlay screens (login / onboarding) ──────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10,11,14,.95);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center;
+  overflow-y: auto; padding: 24px;
+}
+
+.overlay-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 48px 40px;
+  max-width: 460px; width: 100%;
+  text-align: center;
+  animation: fadeUp .4s ease forwards;
+}
+
+.overlay-logo {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  font-size: 13px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text); margin-bottom: 32px;
+}
+
+.overlay-title {
+  font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 10px;
+}
+
+.overlay-desc {
+  font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 28px;
+}
+
+/* choice cards grid */
+.choice-grid {
+  display: grid; gap: 10px; margin-top: 4px;
+}
+
+.choice-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+
+.choice-card:hover { border-color: var(--accent); background: rgba(0,229,160,.04); }
+.choice-card.selected { border-color: var(--accent); background: rgba(0,229,160,.08); }
+
+.choice-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.choice-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.choice-desc  { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+.btn-primary {
+  background: var(--accent); color: #000;
+  border: none; border-radius: 10px;
+  padding: 12px 28px;
+  font-family: var(--sans); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+  margin-top: 20px; width: 100%;
+}
+.btn-primary:hover { box-shadow: 0 0 20px rgba(0,229,160,.4); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ─── Header ────────────────────────────────────────────────────────── */
 header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px;
-  height: 56px;
+  padding: 0 28px; height: 56px;
   border-bottom: 1px solid var(--border);
-  background: rgba(10,11,14,.9);
-  backdrop-filter: blur(12px);
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
+  background: rgba(10,11,14,.9); backdrop-filter: blur(12px);
+  flex-shrink: 0; position: relative; z-index: 10;
 }
 
 .logo {
@@ -68,8 +121,7 @@ header {
 
 .logo-dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
+  background: var(--accent); box-shadow: 0 0 10px var(--accent);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -78,144 +130,122 @@ header {
   50%      { opacity: .5; transform: scale(.8); }
 }
 
-.header-meta {
-  display: flex; gap: 16px; align-items: center;
-}
+.header-meta { display: flex; gap: 12px; align-items: center; }
 
 .badge {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
   padding: 3px 8px; border-radius: 4px;
-  border: 1px solid var(--border2);
-  color: var(--text2); letter-spacing: .08em;
-  text-transform: uppercase;
+  border: 1px solid var(--border2); color: var(--text2);
+  letter-spacing: .08em; text-transform: uppercase;
 }
+.badge.live { border-color: rgba(0,229,160,.3); color: var(--accent); background: rgba(0,229,160,.05); }
 
-.badge.live {
-  border-color: rgba(0,229,160,.3);
-  color: var(--accent);
-  background: rgba(0,229,160,.05);
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border2); }
+.user-email  { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.logout-btn  {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 8px; cursor: pointer; transition: all .2s;
 }
+.logout-btn:hover { color: var(--accent3); border-color: var(--accent3); }
 
 /* ─── Layout ────────────────────────────────────────────────────────── */
 .layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  display: grid; grid-template-columns: 260px 1fr;
+  flex: 1; min-height: 0; overflow: hidden;
 }
 
 /* ─── Sidebar ───────────────────────────────────────────────────────── */
 .sidebar {
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
-  overflow-y: auto;
-  background: var(--surface);
+  overflow: hidden; background: var(--surface);
 }
 
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-.sidebar-section {
-  padding: 20px;
+.sidebar-top {
+  padding: 16px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
+
+.new-chat-btn {
+  width: 100%; background: transparent;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  color: var(--text2); font-family: var(--sans); font-size: 13px;
+  padding: 9px 14px; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.new-chat-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(0,229,160,.04); }
+
+.sidebar-section { padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 
 .sidebar-label {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
   letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 12px;
+  color: var(--text3); margin-bottom: 10px;
 }
 
 /* Config inputs */
-.config-group { margin-bottom: 12px; }
-.config-label {
-  font-family: var(--mono); font-size: 11px; color: var(--text2);
-  margin-bottom: 4px; display: block;
-}
+.config-group { margin-bottom: 10px; }
+.config-label { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-bottom: 4px; display: block; }
 
 .config-input {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--mono); font-size: 12px;
-  padding: 7px 10px;
-  outline: none;
-  transition: border-color .2s;
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-family: var(--mono); font-size: 12px;
+  padding: 7px 10px; outline: none; transition: border-color .2s;
 }
-
-.config-input:focus {
-  border-color: var(--accent);
-}
-
-/* Suggestion pills */
-.suggestions { display: flex; flex-direction: column; gap: 6px; }
-
-.suggestion-btn {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text2);
-  font-family: var(--sans); font-size: 12px;
-  padding: 8px 12px;
-  text-align: left;
-  cursor: pointer;
-  transition: all .2s;
-  line-height: 1.4;
-}
-
-.suggestion-btn:hover {
-  border-color: var(--accent);
-  color: var(--text);
-  background: rgba(0,229,160,.05);
-}
+.config-input:focus { border-color: var(--accent); }
 
 /* Stats */
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.stat-val  { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 3px; }
+.stat-key  { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
 
-.stat-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 12px;
+/* Chat history */
+.history-list {
+  flex: 1; overflow-y: auto; padding: 8px 0;
 }
 
-.stat-val {
-  font-family: var(--mono); font-size: 18px; font-weight: 500;
-  color: var(--accent); line-height: 1;
-  margin-bottom: 3px;
-}
+.history-list::-webkit-scrollbar { width: 3px; }
+.history-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-.stat-key {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--text3); text-transform: uppercase; letter-spacing: .06em;
+.history-item {
+  padding: 9px 16px; cursor: pointer;
+  border-radius: 0; transition: background .15s;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.history-item:hover { background: var(--surface2); }
+.history-item.active { background: rgba(0,229,160,.06); }
+
+.history-icon { font-size: 13px; color: var(--text3); flex-shrink: 0; margin-top: 1px; }
+.history-text {
+  font-size: 12px; color: var(--text2); line-height: 1.4;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.history-time { font-family: var(--mono); font-size: 10px; color: var(--text3); white-space: nowrap; margin-left: auto; flex-shrink: 0; }
+
+.history-empty {
+  padding: 24px 16px; text-align: center;
+  font-family: var(--mono); font-size: 11px; color: var(--text3); line-height: 1.6;
 }
 
 /* ─── Chat area ─────────────────────────────────────────────────────── */
-.chat-area {
-  display: flex; flex-direction: column;
-  min-height: 0; overflow: hidden;
-}
+.chat-area { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 
 .messages {
   flex: 1; overflow-y: auto;
-  padding: 28px 32px;
-  display: flex; flex-direction: column; gap: 24px;
+  padding: 32px; display: flex; flex-direction: column; gap: 24px;
 }
 
 .messages::-webkit-scrollbar { width: 4px; }
-.messages::-webkit-scrollbar-track { background: transparent; }
 .messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 /* Welcome state */
-.welcome {
-  margin: auto;
-  text-align: center;
-  max-width: 520px;
-}
+.welcome { margin: auto; text-align: center; max-width: 580px; width: 100%; }
 
 .welcome-icon {
   font-size: 48px; margin-bottom: 20px;
@@ -223,23 +253,28 @@ header {
 }
 
 .welcome h2 {
-  font-size: 28px; font-weight: 800;
-  letter-spacing: -.02em;
-  margin-bottom: 8px;
+  font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 8px;
   background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-.welcome p {
-  font-size: 14px; color: var(--text2); line-height: 1.6;
+.welcome p { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 28px; }
+
+/* Suggestion chips in welcome */
+.welcome-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2); font-family: var(--sans); font-size: 12px;
+  padding: 7px 14px; cursor: pointer; transition: all .2s;
+  text-align: left; line-height: 1.4;
 }
+.chip:hover { border-color: var(--accent); color: var(--text); background: rgba(0,229,160,.05); }
 
 /* Message bubbles */
-.msg {
-  display: flex; flex-direction: column; gap: 12px;
-  animation: fadeUp .35s ease forwards;
-  opacity: 0;
-}
+.msg { display: flex; flex-direction: column; gap: 12px; animation: fadeUp .35s ease forwards; opacity: 0; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -247,285 +282,140 @@ header {
 }
 
 .msg-question {
-  align-self: flex-end;
-  max-width: 70%;
-  background: rgba(0,102,255,.12);
-  border: 1px solid rgba(0,102,255,.25);
-  border-radius: 12px 12px 2px 12px;
-  padding: 12px 16px;
+  align-self: flex-end; max-width: 70%;
+  background: rgba(0,102,255,.12); border: 1px solid rgba(0,102,255,.25);
+  border-radius: 12px 12px 2px 12px; padding: 12px 16px;
   font-size: 14px; line-height: 1.5; color: var(--text);
 }
 
-.msg-answer {
-  align-self: flex-start;
-  max-width: 90%;
-  display: flex; flex-direction: column; gap: 10px;
-}
+.msg-answer { align-self: flex-start; max-width: 92%; display: flex; flex-direction: column; gap: 10px; }
 
 /* Insight card */
 .insight-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: var(--radius);
   padding: 16px 20px;
 }
+.insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.insight-label  { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.insight-text   { font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
 
-.insight-header {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 10px;
+/* SQL accordion */
+.sql-accordion { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+.sql-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: rgba(0,0,0,.2);
+  border: none; cursor: pointer; transition: background .15s;
 }
+.sql-toggle:hover { background: rgba(0,0,0,.35); }
 
-.insight-label {
-  font-family: var(--mono); font-size: 10px; font-weight: 500;
-  letter-spacing: .1em; text-transform: uppercase;
-  color: var(--accent);
-}
+.sql-toggle-left { display: flex; align-items: center; gap: 10px; }
+.sql-lang { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
 
-.insight-text {
-  font-size: 14px; line-height: 1.7; color: var(--text);
-  white-space: pre-wrap;
-}
-
-/* SQL block */
-.sql-block {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.sql-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,.2);
-}
-
-.sql-lang {
-  font-family: var(--mono); font-size: 10px; color: var(--text3);
-  text-transform: uppercase; letter-spacing: .08em;
-}
-
+.sql-toggle-right { display: flex; align-items: center; gap: 8px; }
 .copy-btn {
   font-family: var(--mono); font-size: 10px; color: var(--text2);
-  background: none; border: 1px solid var(--border);
-  border-radius: 4px; padding: 2px 8px; cursor: pointer;
-  transition: all .2s;
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 8px; cursor: pointer; transition: all .2s;
 }
-
 .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.sql-chevron {
+  color: var(--text3); transition: transform .25s; font-size: 12px;
+  display: flex; align-items: center;
+}
+.sql-chevron.open { transform: rotate(180deg); }
+
+.sql-body { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
+.sql-body.open { max-height: 600px; }
 
 .sql-code {
   font-family: var(--mono); font-size: 12px; color: #88c0d0;
-  padding: 14px;
-  overflow-x: auto;
-  white-space: pre;
-  line-height: 1.6;
+  padding: 14px; overflow-x: auto; white-space: pre; line-height: 1.6;
+  border-top: 1px solid var(--border);
 }
 
 /* Data table */
 .data-table-wrap {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  max-height: 320px;
-  overflow-y: auto;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  max-height: 300px; overflow-y: auto;
 }
-
 .data-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
 .data-table-wrap::-webkit-scrollbar-thumb { background: var(--border2); }
 
-table {
-  width: 100%; border-collapse: collapse;
-  font-family: var(--mono); font-size: 12px;
-}
-
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
 thead th {
-  background: rgba(0,0,0,.3);
-  padding: 8px 14px;
-  text-align: left;
+  background: rgba(0,0,0,.3); padding: 8px 14px; text-align: left;
   font-size: 10px; font-weight: 500; letter-spacing: .08em;
   text-transform: uppercase; color: var(--text2);
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0;
-  white-space: nowrap;
+  border-bottom: 1px solid var(--border); position: sticky; top: 0; white-space: nowrap;
 }
-
-tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background .15s;
-}
-
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
 tbody tr:hover { background: rgba(0,229,160,.03); }
 tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-tbody td {
-  padding: 8px 14px; color: var(--text2);
-  max-width: 260px; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap;
-}
-
-.meta-row {
-  display: flex; gap: 16px; align-items: center;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  font-family: var(--mono); font-size: 11px; color: var(--text3);
-  display: flex; align-items: center; gap: 4px;
-}
-
+.meta-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.meta-item { font-family: var(--mono); font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
 .meta-item b { color: var(--text2); }
 
 /* Loading */
 .loading-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
   display: flex; align-items: center; gap: 14px;
 }
-
-.loading-dots {
-  display: flex; gap: 5px;
-}
-
+.loading-dots { display: flex; gap: 5px; }
 .loading-dots span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent);
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
   animation: dotBounce .8s ease-in-out infinite;
 }
-
 .loading-dots span:nth-child(2) { animation-delay: .15s; }
 .loading-dots span:nth-child(3) { animation-delay: .30s; }
-
 @keyframes dotBounce {
   0%,80%,100% { transform: scale(.7); opacity: .4; }
   40%          { transform: scale(1);  opacity: 1;  }
 }
-
-.loading-text {
-  font-size: 13px; color: var(--text2); font-family: var(--mono);
-}
+.loading-text { font-size: 13px; color: var(--text2); font-family: var(--mono); }
 
 /* Error */
 .error-card {
-  background: rgba(255,77,109,.06);
-  border: 1px solid rgba(255,77,109,.25);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  font-family: var(--mono); font-size: 13px;
-  color: var(--accent3);
+  background: rgba(255,77,109,.06); border: 1px solid rgba(255,77,109,.25);
+  border-radius: var(--radius); padding: 14px 18px;
+  font-family: var(--mono); font-size: 13px; color: var(--accent3);
 }
 
 /* ─── Input bar ─────────────────────────────────────────────────────── */
 .input-bar {
-  padding: 16px 32px 20px;
-  border-top: 1px solid var(--border);
-  background: rgba(10,11,14,.95);
-  backdrop-filter: blur(12px);
-  flex-shrink: 0;
+  padding: 16px 32px 20px; border-top: 1px solid var(--border);
+  background: rgba(10,11,14,.95); backdrop-filter: blur(12px); flex-shrink: 0;
 }
 
 .input-row {
   display: flex; gap: 10px; align-items: flex-end;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
-  transition: border-color .2s;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; transition: border-color .2s;
 }
-
-.input-row:focus-within {
-  border-color: rgba(0,229,160,.4);
-  box-shadow: var(--glow);
-}
+.input-row:focus-within { border-color: rgba(0,229,160,.4); box-shadow: var(--glow); }
 
 #questionInput {
-  flex: 1;
-  background: none; border: none; outline: none;
+  flex: 1; background: none; border: none; outline: none;
   color: var(--text); font-family: var(--sans); font-size: 14px;
-  resize: none; min-height: 24px; max-height: 120px;
-  line-height: 1.5;
+  resize: none; min-height: 24px; max-height: 120px; line-height: 1.5;
 }
-
 #questionInput::placeholder { color: var(--text3); }
 
 .send-btn {
-  background: var(--accent);
-  border: none; border-radius: 8px;
-  width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all .2s;
-  color: #000;
+  background: var(--accent); border: none; border-radius: 8px;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: all .2s; color: #000;
 }
+.send-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 0 16px rgba(0,229,160,.4); }
+.send-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
 
-.send-btn:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 16px rgba(0,229,160,.4);
-}
-
-.send-btn:disabled {
-  opacity: .3; cursor: not-allowed; transform: none;
-}
-
-.input-hint {
-  font-family: var(--mono); font-size: 10px; color: var(--text3);
-  margin-top: 8px; text-align: right; letter-spacing: .04em;
-}
-
-/* ─── Login screen ──────────────────────────────────────────────────── */
-.login-screen {
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(10,11,14,.92);
-  backdrop-filter: blur(20px);
-  display: flex; align-items: center; justify-content: center;
-}
-.login-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 16px;
-  padding: 48px 40px;
-  max-width: 380px; width: 90%;
-  text-align: center;
-}
-.login-logo {
-  display: flex; align-items: center; gap: 10px;
-  justify-content: center;
-  font-size: 13px; font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--text);
-  margin-bottom: 28px;
-}
-.login-title {
-  font-family: var(--sans); font-size: 22px; font-weight: 800;
-  letter-spacing: -.02em; margin-bottom: 10px;
-}
-.login-desc {
-  font-size: 13px; color: var(--text2); line-height: 1.6;
-}
-
-/* ─── User info ─────────────────────────────────────────────────────── */
-.user-info {
-  display: flex; align-items: center; gap: 10px;
-}
-.user-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 1px solid var(--border2);
-}
-.user-email {
-  font-family: var(--mono); font-size: 11px; color: var(--text2);
-}
-.logout-btn {
-  font-family: var(--mono); font-size: 10px; color: var(--text3);
-  background: none; border: 1px solid var(--border);
-  border-radius: 4px; padding: 3px 8px; cursor: pointer;
-  transition: all .2s;
-}
-.logout-btn:hover { color: var(--accent3); border-color: var(--accent3); }
+.input-hint { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 8px; text-align: right; letter-spacing: .04em; }
 
 /* ─── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
@@ -533,97 +423,147 @@ tbody td {
   .sidebar { display: none; }
   .messages { padding: 16px; }
   .input-bar { padding: 12px 16px 16px; }
+  .overlay-card { padding: 32px 24px; }
 }
 </style>
 </head>
 <body>
 
-<!-- Login screen -->
-<div id="loginScreen" class="login-screen" style="display:none">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-dot"></div>
-      <span>GA4 · AI Analytics</span>
-    </div>
-    <h1 class="login-title">Acesse com Google</h1>
-    <p class="login-desc">Entre com sua conta Google autorizada para acessar o analytics com IA.</p>
-    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-top:24px"></div>
+<!-- ─── Login overlay ──────────────────────────────────────────────────── -->
+<div id="loginOverlay" class="overlay" style="display:none">
+  <div class="overlay-card">
+    <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <h1 class="overlay-title" id="loginTitle">Acesse com Google</h1>
+    <p class="overlay-desc" id="loginDesc">Entre com sua conta Google autorizada para acessar o analytics com IA.</p>
+    <div id="googleSignInBtn" style="display:flex;justify-content:center"></div>
   </div>
 </div>
 
-<!-- Header -->
-<header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    GA4 · AI Analytics POC
+<!-- ─── Language overlay ───────────────────────────────────────────────── -->
+<div id="langOverlay" class="overlay" style="display:none">
+  <div class="overlay-card" style="max-width:520px">
+    <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <h1 class="overlay-title">Choose your language</h1>
+    <p class="overlay-desc">Select the language for the platform interface and AI responses.</p>
+    <div class="choice-grid" style="grid-template-columns:1fr 1fr">
+      <div class="choice-card" onclick="selectLang('pt')" id="lang-pt">
+        <div class="choice-icon">🇧🇷</div>
+        <div><div class="choice-title">Português</div><div class="choice-desc">Interface e respostas em português</div></div>
+      </div>
+      <div class="choice-card" onclick="selectLang('en')" id="lang-en">
+        <div class="choice-icon">🇺🇸</div>
+        <div><div class="choice-title">English</div><div class="choice-desc">Interface and responses in English</div></div>
+      </div>
+      <div class="choice-card" onclick="selectLang('es')" id="lang-es">
+        <div class="choice-icon">🇪🇸</div>
+        <div><div class="choice-title">Español</div><div class="choice-desc">Interfaz y respuestas en español</div></div>
+      </div>
+      <div class="choice-card" onclick="selectLang('fr')" id="lang-fr">
+        <div class="choice-icon">🇫🇷</div>
+        <div><div class="choice-title">Français</div><div class="choice-desc">Interface et réponses en français</div></div>
+      </div>
+    </div>
+    <button class="btn-primary" id="langNextBtn" onclick="goToOnboarding()" disabled>Continuar →</button>
   </div>
+</div>
+
+<!-- ─── Onboarding overlay ─────────────────────────────────────────────── -->
+<div id="onboardingOverlay" class="overlay" style="display:none">
+  <div class="overlay-card" style="max-width:500px">
+    <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <h1 class="overlay-title" id="onboardTitle">Qual é o seu nível?</h1>
+    <p class="overlay-desc" id="onboardDesc">Isso nos ajuda a adaptar as respostas e explicações ao seu perfil.</p>
+    <div class="choice-grid">
+      <div class="choice-card" onclick="selectLevel('beginner')" id="level-beginner">
+        <div class="choice-icon">🌱</div>
+        <div>
+          <div class="choice-title" id="lvl-title-b">Iniciante</div>
+          <div class="choice-desc" id="lvl-desc-b">Estou começando com Analytics. Prefiro explicações simples com definições dos conceitos.</div>
+        </div>
+      </div>
+      <div class="choice-card" onclick="selectLevel('intermediate')" id="level-intermediate">
+        <div class="choice-icon">📈</div>
+        <div>
+          <div class="choice-title" id="lvl-title-i">Intermediário</div>
+          <div class="choice-desc" id="lvl-desc-i">Já uso GA4 no dia a dia. Conheço as métricas básicas e quero insights acionáveis.</div>
+        </div>
+      </div>
+      <div class="choice-card" onclick="selectLevel('advanced')" id="level-advanced">
+        <div class="choice-icon">⚡</div>
+        <div>
+          <div class="choice-title" id="lvl-title-a">Avançado</div>
+          <div class="choice-desc" id="lvl-desc-a">Sou analista ou desenvolvedor. Prefiro respostas técnicas sem simplificações.</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" id="onboardNextBtn" onclick="finishOnboarding()" disabled id="onboardNextBtn">Começar →</button>
+  </div>
+</div>
+
+<!-- ─── Header ────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo"><div class="logo-dot"></div><span id="headerTitle">GA4 · AI Analytics</span></div>
   <div class="header-meta">
     <div class="user-info" id="userInfo" style="display:none">
       <img id="userAvatar" class="user-avatar" src="" alt="" />
       <span id="userEmail" class="user-email"></span>
-      <button class="logout-btn" onclick="logout()">Sair</button>
+      <button class="logout-btn" onclick="logout()" id="logoutBtn">Sair</button>
     </div>
     <span class="badge">BigQuery</span>
     <span class="badge">Claude Sonnet</span>
-    <span class="badge live" id="statusBadge">● Conectando...</span>
+    <span class="badge live" id="statusBadge">● ...</span>
   </div>
 </header>
 
-<!-- Main layout -->
+<!-- ─── Main layout ───────────────────────────────────────────────────── -->
 <div class="layout">
 
   <!-- Sidebar -->
   <aside class="sidebar">
 
+    <div class="sidebar-top">
+      <button class="new-chat-btn" onclick="newChat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span id="newChatLabel">Novo chat</span>
+      </button>
+    </div>
+
     <!-- Config -->
     <div class="sidebar-section">
-      <div class="sidebar-label">Configuração</div>
+      <div class="sidebar-label" id="configLabel">Configuração</div>
       <div class="config-group">
-        <label class="config-label">API URL</label>
-        <input class="config-input" id="apiUrl" type="text" value="http://localhost:8000" />
-      </div>
-      <div class="config-group">
-        <label class="config-label">Data início</label>
+        <label class="config-label" id="dateStartLabel">Data início</label>
         <input class="config-input" id="dateStart" type="date" />
       </div>
       <div class="config-group">
-        <label class="config-label">Data fim</label>
+        <label class="config-label" id="dateEndLabel">Data fim</label>
         <input class="config-input" id="dateEnd" type="date" />
-      </div>
-      <div class="config-group">
-        <label class="config-label">Idioma da resposta</label>
-        <select class="config-input" id="languageSelect">
-          <option value="Português" selected>Português</option>
-          <option value="English">English</option>
-          <option value="Español">Español</option>
-          <option value="Français">Français</option>
-        </select>
       </div>
     </div>
 
     <!-- Stats -->
     <div class="sidebar-section">
-      <div class="sidebar-label">Sessão</div>
+      <div class="sidebar-label" id="sessionLabel">Sessão</div>
       <div class="stats">
         <div class="stat-card">
           <div class="stat-val" id="statQueries">0</div>
-          <div class="stat-key">Queries</div>
+          <div class="stat-key" id="statQueriesLabel">Queries</div>
         </div>
         <div class="stat-card">
           <div class="stat-val" id="statRows">—</div>
-          <div class="stat-key">Linhas</div>
+          <div class="stat-key" id="statRowsLabel">Linhas</div>
         </div>
         <div class="stat-card" style="grid-column:span 2">
           <div class="stat-val" id="statBytes" style="font-size:14px">—</div>
-          <div class="stat-key">GB Processado</div>
+          <div class="stat-key" id="statBytesLabel">GB Processado</div>
         </div>
       </div>
     </div>
 
-    <!-- Suggestions -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">Perguntas frequentes</div>
-      <div class="suggestions" id="suggestionsContainer"></div>
+    <!-- History -->
+    <div class="sidebar-label" style="padding:12px 16px 6px" id="historyLabel">Histórico</div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty" id="historyEmpty">Suas perguntas aparecerão aqui</div>
     </div>
 
   </aside>
@@ -633,92 +573,265 @@ tbody td {
     <div class="messages" id="messages">
       <div class="welcome" id="welcome">
         <div class="welcome-icon">📊</div>
-        <h2>Analise seu GA4 com IA</h2>
-        <p>Faça perguntas em português sobre seus dados do Google Analytics 4 armazenados no BigQuery. A IA gera o SQL, executa e interpreta os resultados para você.</p>
+        <h2 id="welcomeTitle">Analise seu GA4 com IA</h2>
+        <p id="welcomeDesc">Faça perguntas sobre seus dados do Google Analytics 4 armazenados no BigQuery. A IA gera o SQL, executa e interpreta os resultados para você.</p>
+        <div class="welcome-chips" id="welcomeChips"></div>
       </div>
     </div>
 
     <div class="input-bar">
       <div class="input-row">
-        <textarea
-          id="questionInput"
-          placeholder="Ex: Quantos usuários únicos tivemos nos últimos 30 dias?"
-          rows="1"
-        ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendQuestion()" title="Enviar (Enter)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
+        <textarea id="questionInput" rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendQuestion()" title="Enter">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
-      <div class="input-hint">Enter para enviar · Shift+Enter para nova linha</div>
+      <div class="input-hint" id="inputHint">Enter para enviar · Shift+Enter para nova linha</div>
     </div>
   </div>
 
 </div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let session = { queries: 0, totalRows: 0, totalBytes: 0 };
-let authToken   = null;
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+const T = {
+  pt: {
+    langCode: "Português",
+    logoutBtn: "Sair",
+    newChat: "Novo chat",
+    configLabel: "Configuração",
+    dateStartLabel: "Data início",
+    dateEndLabel: "Data fim",
+    sessionLabel: "Sessão",
+    statQueriesLabel: "Queries",
+    statRowsLabel: "Linhas",
+    statBytesLabel: "GB Processado",
+    historyLabel: "Histórico",
+    historyEmpty: "Suas perguntas aparecerão aqui",
+    welcomeTitle: "Analise seu GA4 com IA",
+    welcomeDesc: "Faça perguntas sobre seus dados do Google Analytics 4 armazenados no BigQuery. A IA gera o SQL, executa e interpreta os resultados para você.",
+    inputPlaceholder: "Ex: Quantos usuários únicos tivemos nos últimos 30 dias?",
+    inputHint: "Enter para enviar · Shift+Enter para nova linha",
+    loadingText: "Gerando SQL → executando no BigQuery → interpretando...",
+    insightLabel: "✦ Insight da IA",
+    sqlLang: "SQL · BigQuery",
+    copyBtn: "Copiar",
+    copiedBtn: "Copiado!",
+    rowsLabel: "linhas",
+    gbLabel: "processado",
+    statusOnline: "● Online",
+    statusOffline: "● Offline",
+    statusConnecting: "● Conectando...",
+    onboardTitle: "Qual é o seu nível?",
+    onboardDesc: "Isso nos ajuda a adaptar as respostas e explicações ao seu perfil.",
+    lvlTitleB: "Iniciante", lvlDescB: "Estou começando com Analytics. Prefiro explicações simples com definições dos conceitos.",
+    lvlTitleI: "Intermediário", lvlDescI: "Já uso GA4 no dia a dia. Conheço as métricas básicas e quero insights acionáveis.",
+    lvlTitleA: "Avançado", lvlDescA: "Sou analista ou desenvolvedor. Prefiro respostas técnicas sem simplificações.",
+    continueBtn: "Começar →",
+    suggestions: [
+      "Quantos usuários únicos tivemos nos últimos 30 dias?",
+      "Quais são as 10 páginas mais visitadas?",
+      "De quais países vieram mais visitantes?",
+      "Qual canal trouxe mais sessões esse mês?",
+      "Quais dispositivos os usuários mais usam?",
+      "Qual é a taxa de compra nos últimos 7 dias?",
+      "Quais eventos aconteceram mais vezes ontem?",
+      "Qual o tempo médio de engajamento por sessão?"
+    ]
+  },
+  en: {
+    langCode: "English",
+    logoutBtn: "Sign out",
+    newChat: "New chat",
+    configLabel: "Settings",
+    dateStartLabel: "Start date",
+    dateEndLabel: "End date",
+    sessionLabel: "Session",
+    statQueriesLabel: "Queries",
+    statRowsLabel: "Rows",
+    statBytesLabel: "GB Processed",
+    historyLabel: "History",
+    historyEmpty: "Your questions will appear here",
+    welcomeTitle: "Analyze your GA4 with AI",
+    welcomeDesc: "Ask questions about your Google Analytics 4 data stored in BigQuery. The AI generates SQL, runs it, and interprets the results for you.",
+    inputPlaceholder: "E.g. How many unique users did we have in the last 30 days?",
+    inputHint: "Enter to send · Shift+Enter for new line",
+    loadingText: "Generating SQL → running on BigQuery → interpreting...",
+    insightLabel: "✦ AI Insight",
+    sqlLang: "SQL · BigQuery",
+    copyBtn: "Copy",
+    copiedBtn: "Copied!",
+    rowsLabel: "rows",
+    gbLabel: "processed",
+    statusOnline: "● Online",
+    statusOffline: "● Offline",
+    statusConnecting: "● Connecting...",
+    onboardTitle: "What's your level?",
+    onboardDesc: "This helps us tailor responses and explanations to your profile.",
+    lvlTitleB: "Beginner", lvlDescB: "I'm new to Analytics. I prefer simple explanations with concept definitions.",
+    lvlTitleI: "Intermediate", lvlDescI: "I use GA4 regularly. I know basic metrics and want actionable insights.",
+    lvlTitleA: "Advanced", lvlDescA: "I'm an analyst or developer. I prefer technical responses without simplification.",
+    continueBtn: "Get started →",
+    suggestions: [
+      "How many unique users did we have in the last 30 days?",
+      "What are the top 10 most visited pages?",
+      "Which countries sent the most visitors?",
+      "Which channel drove the most sessions this month?",
+      "What devices do users most commonly use?",
+      "What's the purchase rate in the last 7 days?",
+      "Which events happened the most times yesterday?",
+      "What's the average engagement time per session?"
+    ]
+  },
+  es: {
+    langCode: "Español",
+    logoutBtn: "Salir",
+    newChat: "Nuevo chat",
+    configLabel: "Configuración",
+    dateStartLabel: "Fecha inicio",
+    dateEndLabel: "Fecha fin",
+    sessionLabel: "Sesión",
+    statQueriesLabel: "Consultas",
+    statRowsLabel: "Filas",
+    statBytesLabel: "GB Procesado",
+    historyLabel: "Historial",
+    historyEmpty: "Tus preguntas aparecerán aquí",
+    welcomeTitle: "Analiza tu GA4 con IA",
+    welcomeDesc: "Haz preguntas sobre tus datos de Google Analytics 4 almacenados en BigQuery. La IA genera el SQL, lo ejecuta e interpreta los resultados.",
+    inputPlaceholder: "Ej: ¿Cuántos usuarios únicos tuvimos en los últimos 30 días?",
+    inputHint: "Enter para enviar · Shift+Enter para nueva línea",
+    loadingText: "Generando SQL → ejecutando en BigQuery → interpretando...",
+    insightLabel: "✦ Insight de IA",
+    sqlLang: "SQL · BigQuery",
+    copyBtn: "Copiar",
+    copiedBtn: "¡Copiado!",
+    rowsLabel: "filas",
+    gbLabel: "procesado",
+    statusOnline: "● En línea",
+    statusOffline: "● Sin conexión",
+    statusConnecting: "● Conectando...",
+    onboardTitle: "¿Cuál es tu nivel?",
+    onboardDesc: "Esto nos ayuda a adaptar las respuestas y explicaciones a tu perfil.",
+    lvlTitleB: "Principiante", lvlDescB: "Estoy empezando con Analytics. Prefiero explicaciones simples con definiciones.",
+    lvlTitleI: "Intermedio", lvlDescI: "Uso GA4 regularmente. Conozco las métricas básicas y quiero insights accionables.",
+    lvlTitleA: "Avanzado", lvlDescA: "Soy analista o desarrollador. Prefiero respuestas técnicas sin simplificaciones.",
+    continueBtn: "Comenzar →",
+    suggestions: [
+      "¿Cuántos usuarios únicos tuvimos en los últimos 30 días?",
+      "¿Cuáles son las 10 páginas más visitadas?",
+      "¿De qué países vinieron más visitantes?",
+      "¿Qué canal trajo más sesiones este mes?",
+      "¿Qué dispositivos usan más los usuarios?",
+      "¿Cuál es la tasa de compra en los últimos 7 días?",
+      "¿Qué eventos ocurrieron más veces ayer?",
+      "¿Cuál es el tiempo medio de engagement por sesión?"
+    ]
+  },
+  fr: {
+    langCode: "Français",
+    logoutBtn: "Déconnexion",
+    newChat: "Nouveau chat",
+    configLabel: "Configuration",
+    dateStartLabel: "Date début",
+    dateEndLabel: "Date fin",
+    sessionLabel: "Session",
+    statQueriesLabel: "Requêtes",
+    statRowsLabel: "Lignes",
+    statBytesLabel: "Go traités",
+    historyLabel: "Historique",
+    historyEmpty: "Vos questions apparaîtront ici",
+    welcomeTitle: "Analysez votre GA4 avec l'IA",
+    welcomeDesc: "Posez des questions sur vos données Google Analytics 4 stockées dans BigQuery. L'IA génère le SQL, l'exécute et interprète les résultats.",
+    inputPlaceholder: "Ex : Combien d'utilisateurs uniques avons-nous eu ces 30 derniers jours ?",
+    inputHint: "Entrée pour envoyer · Maj+Entrée pour nouvelle ligne",
+    loadingText: "Génération SQL → exécution BigQuery → interprétation...",
+    insightLabel: "✦ Insight IA",
+    sqlLang: "SQL · BigQuery",
+    copyBtn: "Copier",
+    copiedBtn: "Copié !",
+    rowsLabel: "lignes",
+    gbLabel: "traités",
+    statusOnline: "● En ligne",
+    statusOffline: "● Hors ligne",
+    statusConnecting: "● Connexion...",
+    onboardTitle: "Quel est votre niveau ?",
+    onboardDesc: "Cela nous aide à adapter les réponses et explications à votre profil.",
+    lvlTitleB: "Débutant", lvlDescB: "Je débute en Analytics. Je préfère des explications simples avec des définitions.",
+    lvlTitleI: "Intermédiaire", lvlDescI: "J'utilise GA4 régulièrement. Je connais les métriques de base et veux des insights actionnables.",
+    lvlTitleA: "Avancé", lvlDescA: "Je suis analyste ou développeur. Je préfère des réponses techniques sans simplification.",
+    continueBtn: "Commencer →",
+    suggestions: [
+      "Combien d'utilisateurs uniques avons-nous eu ces 30 derniers jours ?",
+      "Quelles sont les 10 pages les plus visitées ?",
+      "De quels pays viennent le plus de visiteurs ?",
+      "Quel canal a généré le plus de sessions ce mois-ci ?",
+      "Quels appareils les utilisateurs utilisent-ils le plus ?",
+      "Quel est le taux d'achat ces 7 derniers jours ?",
+      "Quels événements se sont produits le plus hier ?",
+      "Quel est le temps d'engagement moyen par session ?"
+    ]
+  }
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let session    = { queries: 0, totalRows: 0, totalBytes: 0 };
+let authToken  = null;
 let currentUser = null;
 let authEnabled = false;
 let GOOGLE_CLIENT_ID = '';
+let selectedLang  = localStorage.getItem('ga4_lang')  || null;
+let selectedLevel = localStorage.getItem('ga4_level') || null;
+let chatHistory = JSON.parse(localStorage.getItem('ga4_history') || '[]'); // [{id,question,ts}]
+let activeHistoryId = null;
+let msgMap = {}; // id -> dom element
 
-const SUGGESTIONS = [
-  "Quantos usuários únicos tivemos nos últimos 30 dias?",
-  "Quais são as 10 páginas mais visitadas?",
-  "De quais países vieram mais visitantes?",
-  "Qual canal trouxe mais sessões esse mês?",
-  "Quais dispositivos os usuários mais usam?",
-  "Qual é a taxa de compra nos últimos 7 dias?",
-  "Quais eventos aconteceram mais vezes ontem?",
-];
+function t(key) { return (T[selectedLang || 'pt'] || T.pt)[key] || key; }
 
-// ─── Init ────────────────────────────────────────────────────────────────────
+// ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Set default dates (last 30 days)
   const today = new Date();
   const past  = new Date(); past.setDate(today.getDate() - 30);
   document.getElementById('dateEnd').value   = fmt(today);
   document.getElementById('dateStart').value = fmt(past);
-
   initApp();
 });
 
 async function initApp() {
-  // Ajusta API URL para origin atual se servido via HTTP
-  if (window.location.protocol !== 'file:') {
-    document.getElementById('apiUrl').value = window.location.origin;
-  }
-
-  // Busca config do backend
   try {
-    const cfg = await fetch(apiUrl() + '/config').then(r => r.json());
+    const base = window.location.protocol !== 'file:' ? window.location.origin : 'http://localhost:8000';
+    window._apiBase = base;
+    const cfg = await fetch(base + '/config').then(r => r.json());
     authEnabled      = cfg.auth_enabled || false;
     GOOGLE_CLIENT_ID = cfg.google_client_id || '';
   } catch {}
 
   if (authEnabled) {
-    document.getElementById('loginScreen').style.display = 'flex';
-    loadGoogleSignIn();
+    showLoginOverlay();
   } else {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('userInfo').style.display = 'none';
-    checkHealth();
-    buildSuggestions();
-    initInputHandlers();
+    // No auth — go straight to onboarding if not done, else app
+    if (!selectedLang) {
+      showLangOverlay();
+    } else if (!selectedLevel) {
+      showOnboardingOverlay();
+    } else {
+      launchApp();
+    }
   }
+}
+
+function apiUrl() { return window._apiBase || 'http://localhost:8000'; }
+
+// ─── Login ────────────────────────────────────────────────────────────────────
+function showLoginOverlay() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  loadGoogleSignIn();
 }
 
 function loadGoogleSignIn() {
   const s = document.createElement('script');
   s.src = 'https://accounts.google.com/gsi/client';
   s.onload = () => {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse
-    });
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse });
     google.accounts.id.renderButton(
       document.getElementById('googleSignInBtn'),
       { theme: 'filled_black', size: 'large', width: '280', locale: 'pt-BR' }
@@ -731,34 +844,123 @@ function handleCredentialResponse(response) {
   authToken = response.credential;
   const payload = JSON.parse(atob(authToken.split('.')[1]));
   currentUser = { email: payload.email, name: payload.name, picture: payload.picture };
-
-  // Mostra info do usuário no header
   document.getElementById('userAvatar').src = currentUser.picture;
   document.getElementById('userEmail').textContent = currentUser.email;
   document.getElementById('userInfo').style.display = 'flex';
+  document.getElementById('loginOverlay').style.display = 'none';
 
-  // Esconde login screen
-  document.getElementById('loginScreen').style.display = 'none';
-
-  checkHealth();
-  buildSuggestions();
-  initInputHandlers();
+  if (!selectedLang) showLangOverlay();
+  else if (!selectedLevel) showOnboardingOverlay();
+  else launchApp();
 }
 
 function logout() {
-  authToken   = null;
-  currentUser = null;
+  authToken = null; currentUser = null;
+  selectedLang = null; selectedLevel = null;
+  localStorage.removeItem('ga4_lang'); localStorage.removeItem('ga4_level');
   if (window.google) google.accounts.id.disableAutoSelect();
-  document.getElementById('userInfo').style.display  = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('userInfo').style.display = 'none';
+  showLoginOverlay();
 }
 
-function buildSuggestions() {
-  const container = document.getElementById('suggestionsContainer');
-  if (container.children.length > 0) return; // already built
-  SUGGESTIONS.forEach(q => {
+// ─── Language selection ───────────────────────────────────────────────────────
+function showLangOverlay() {
+  document.getElementById('langOverlay').style.display = 'flex';
+  // pre-select if stored
+  if (selectedLang) {
+    document.querySelectorAll('[id^="lang-"]').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById('lang-' + selectedLang);
+    if (el) { el.classList.add('selected'); document.getElementById('langNextBtn').disabled = false; }
+  }
+}
+
+function selectLang(code) {
+  selectedLang = code;
+  document.querySelectorAll('[id^="lang-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('lang-' + code).classList.add('selected');
+  document.getElementById('langNextBtn').disabled = false;
+  // Update button text based on selection
+  document.getElementById('langNextBtn').textContent = {pt:'Continuar →',en:'Continue →',es:'Continuar →',fr:'Continuer →'}[code] || 'Continue →';
+}
+
+function goToOnboarding() {
+  localStorage.setItem('ga4_lang', selectedLang);
+  document.getElementById('langOverlay').style.display = 'none';
+  showOnboardingOverlay();
+}
+
+// ─── Onboarding ───────────────────────────────────────────────────────────────
+function showOnboardingOverlay() {
+  const lang = selectedLang || 'pt';
+  const tr = T[lang] || T.pt;
+  document.getElementById('onboardTitle').textContent    = tr.onboardTitle;
+  document.getElementById('onboardDesc').textContent     = tr.onboardDesc;
+  document.getElementById('lvl-title-b').textContent     = tr.lvlTitleB;
+  document.getElementById('lvl-desc-b').textContent      = tr.lvlDescB;
+  document.getElementById('lvl-title-i').textContent     = tr.lvlTitleI;
+  document.getElementById('lvl-desc-i').textContent      = tr.lvlDescI;
+  document.getElementById('lvl-title-a').textContent     = tr.lvlTitleA;
+  document.getElementById('lvl-desc-a').textContent      = tr.lvlDescA;
+  document.getElementById('onboardNextBtn').textContent  = tr.continueBtn;
+  document.getElementById('onboardingOverlay').style.display = 'flex';
+
+  if (selectedLevel) {
+    document.querySelectorAll('[id^="level-"]').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById('level-' + selectedLevel);
+    if (el) { el.classList.add('selected'); document.getElementById('onboardNextBtn').disabled = false; }
+  }
+}
+
+function selectLevel(lvl) {
+  selectedLevel = lvl;
+  document.querySelectorAll('[id^="level-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('level-' + lvl).classList.add('selected');
+  document.getElementById('onboardNextBtn').disabled = false;
+}
+
+function finishOnboarding() {
+  localStorage.setItem('ga4_level', selectedLevel);
+  document.getElementById('onboardingOverlay').style.display = 'none';
+  launchApp();
+}
+
+// ─── Launch app ───────────────────────────────────────────────────────────────
+function launchApp() {
+  applyTranslations();
+  checkHealth();
+  buildWelcomeChips();
+  renderHistory();
+  initInputHandlers();
+}
+
+function applyTranslations() {
+  const tr = T[selectedLang || 'pt'] || T.pt;
+  document.getElementById('logoutBtn').textContent       = tr.logoutBtn;
+  document.getElementById('newChatLabel').textContent    = tr.newChat;
+  document.getElementById('configLabel').textContent     = tr.configLabel;
+  document.getElementById('dateStartLabel').textContent  = tr.dateStartLabel;
+  document.getElementById('dateEndLabel').textContent    = tr.dateEndLabel;
+  document.getElementById('sessionLabel').textContent    = tr.sessionLabel;
+  document.getElementById('statQueriesLabel').textContent= tr.statQueriesLabel;
+  document.getElementById('statRowsLabel').textContent   = tr.statRowsLabel;
+  document.getElementById('statBytesLabel').textContent  = tr.statBytesLabel;
+  document.getElementById('historyLabel').textContent    = tr.historyLabel;
+  document.getElementById('historyEmpty').textContent    = tr.historyEmpty;
+  document.getElementById('welcomeTitle').textContent    = tr.welcomeTitle;
+  document.getElementById('welcomeDesc').textContent     = tr.welcomeDesc;
+  document.getElementById('questionInput').placeholder   = tr.inputPlaceholder;
+  document.getElementById('inputHint').textContent       = tr.inputHint;
+  document.getElementById('statusBadge').textContent     = tr.statusConnecting;
+}
+
+// ─── Welcome chips ────────────────────────────────────────────────────────────
+function buildWelcomeChips() {
+  const container = document.getElementById('welcomeChips');
+  container.innerHTML = '';
+  const suggestions = t('suggestions');
+  suggestions.forEach(q => {
     const btn = document.createElement('button');
-    btn.className = 'suggestion-btn';
+    btn.className = 'chip';
     btn.textContent = q;
     btn.onclick = () => {
       document.getElementById('questionInput').value = q;
@@ -768,27 +970,64 @@ function buildSuggestions() {
   });
 }
 
-function initInputHandlers() {
-  // Auto-resize textarea
-  const ta = document.getElementById('questionInput');
-  if (ta._handlersSet) return; // avoid duplicate listeners
-  ta._handlersSet = true;
-  ta.addEventListener('input', () => {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-  });
+// ─── Chat history ─────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('historyEmpty');
+  if (chatHistory.length === 0) {
+    empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  // Clear existing items (keep empty node)
+  Array.from(list.querySelectorAll('.history-item')).forEach(el => el.remove());
 
-  // Enter to send
-  ta.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendQuestion();
-    }
+  // Render newest first
+  [...chatHistory].reverse().forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'history-item' + (entry.id === activeHistoryId ? ' active' : '');
+    item.dataset.id = entry.id;
+    const timeStr = new Date(entry.ts).toLocaleTimeString(selectedLang === 'pt' ? 'pt-BR' : selectedLang === 'fr' ? 'fr-FR' : selectedLang === 'es' ? 'es-ES' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    item.innerHTML = `
+      <div class="history-icon">💬</div>
+      <div class="history-text">${escHtml(entry.question)}</div>
+      <div class="history-time">${timeStr}</div>`;
+    item.onclick = () => scrollToMsg(entry.id);
+    list.insertBefore(item, empty);
   });
 }
 
-function fmt(d) {
-  return d.toISOString().split('T')[0];
+function addToHistory(id, question) {
+  chatHistory.push({ id, question, ts: Date.now() });
+  if (chatHistory.length > 50) chatHistory.shift();
+  localStorage.setItem('ga4_history', JSON.stringify(chatHistory));
+  activeHistoryId = id;
+  renderHistory();
+}
+
+function scrollToMsg(id) {
+  const el = msgMap[id];
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  activeHistoryId = id;
+  renderHistory();
+}
+
+function newChat() {
+  // Clear messages, show welcome
+  const messages = document.getElementById('messages');
+  messages.innerHTML = '';
+  const welcome = document.createElement('div');
+  welcome.className = 'welcome'; welcome.id = 'welcome';
+  welcome.innerHTML = `
+    <div class="welcome-icon">📊</div>
+    <h2 id="welcomeTitle">${escHtml(t('welcomeTitle'))}</h2>
+    <p id="welcomeDesc">${escHtml(t('welcomeDesc'))}</p>
+    <div class="welcome-chips" id="welcomeChips"></div>`;
+  messages.appendChild(welcome);
+  buildWelcomeChips();
+  session = { queries: 0, totalRows: 0, totalBytes: 0 };
+  updateStats();
+  activeHistoryId = null;
+  renderHistory();
 }
 
 // ─── Health check ─────────────────────────────────────────────────────────────
@@ -796,20 +1035,22 @@ async function checkHealth() {
   const badge = document.getElementById('statusBadge');
   try {
     const res = await fetch(apiUrl() + '/health');
-    if (res.ok) {
-      badge.textContent = '● Online';
-      badge.className = 'badge live';
-    } else throw new Error();
+    badge.textContent = res.ok ? t('statusOnline') : t('statusOffline');
+    badge.className = res.ok ? 'badge live' : 'badge';
+    if (!res.ok) { badge.style.color = 'var(--accent3)'; badge.style.borderColor = 'rgba(255,77,109,.3)'; }
   } catch {
-    badge.textContent = '● Offline';
-    badge.className = 'badge';
-    badge.style.color = 'var(--accent3)';
-    badge.style.borderColor = 'rgba(255,77,109,.3)';
+    badge.textContent = t('statusOffline');
+    badge.className = 'badge'; badge.style.color = 'var(--accent3)';
   }
 }
 
-function apiUrl() {
-  return (document.getElementById('apiUrl').value || 'http://localhost:8000').replace(/\/$/, '');
+// ─── Input handlers ───────────────────────────────────────────────────────────
+function initInputHandlers() {
+  const ta = document.getElementById('questionInput');
+  if (ta._handlersSet) return;
+  ta._handlersSet = true;
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); } });
 }
 
 // ─── Send ─────────────────────────────────────────────────────────────────────
@@ -822,26 +1063,27 @@ async function sendQuestion() {
   sendBtn.disabled = true;
   input.value = ''; input.style.height = 'auto';
 
-  // Hide welcome
   const welcome = document.getElementById('welcome');
   if (welcome) welcome.remove();
 
-  // Add question bubble
+  const msgId = 'msg-' + Date.now();
+
   const msgEl = document.createElement('div');
-  msgEl.className = 'msg';
+  msgEl.className = 'msg'; msgEl.id = msgId;
   msgEl.innerHTML = `<div class="msg-question">${escHtml(question)}</div>`;
   document.getElementById('messages').appendChild(msgEl);
+  msgMap[msgId] = msgEl;
 
-  // Add loading
+  addToHistory(msgId, question);
+
   const loadId = 'load-' + Date.now();
   const loadEl = document.createElement('div');
-  loadEl.className = 'msg';
-  loadEl.id = loadId;
+  loadEl.className = 'msg'; loadEl.id = loadId;
   loadEl.innerHTML = `
     <div class="msg-answer">
       <div class="loading-card">
         <div class="loading-dots"><span></span><span></span><span></span></div>
-        <div class="loading-text">Gerando SQL → executando no BigQuery → interpretando...</div>
+        <div class="loading-text">${escHtml(t('loadingText'))}</div>
       </div>
     </div>`;
   document.getElementById('messages').appendChild(loadEl);
@@ -850,53 +1092,37 @@ async function sendQuestion() {
   try {
     const dateStart = document.getElementById('dateStart').value.replace(/-/g, '');
     const dateEnd   = document.getElementById('dateEnd').value.replace(/-/g, '');
-    const language  = document.getElementById('languageSelect').value;
-
     const headers = { 'Content-Type': 'application/json' };
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const res = await fetch(apiUrl() + '/ask', {
-      method: 'POST',
-      headers,
+      method: 'POST', headers,
       body: JSON.stringify({
         question,
         date_start: dateStart || null,
         date_end:   dateEnd   || null,
         max_rows:   500,
-        language
+        language:   t('langCode'),
+        user_level: selectedLevel || 'intermediate'
       })
     });
 
-    if (res.status === 401) {
-      document.getElementById(loadId).remove();
-      logout();
-      sendBtn.disabled = false;
-      return;
-    }
+    if (res.status === 401) { document.getElementById(loadId).remove(); logout(); sendBtn.disabled = false; return; }
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Erro desconhecido');
+    if (!res.ok) throw new Error(data.detail || 'Error');
 
-    // Update stats
-    session.queries++;
-    session.totalRows  += data.row_count;
-    session.totalBytes += (data.bytes_processed || 0);
+    session.queries++; session.totalRows += data.row_count; session.totalBytes += (data.bytes_processed || 0);
     updateStats();
 
-    // Render answer
     document.getElementById(loadId).remove();
-    renderAnswer(question, data);
+    renderAnswer(msgId, data);
 
   } catch (err) {
     document.getElementById(loadId).remove();
     const errEl = document.createElement('div');
     errEl.className = 'msg';
-    errEl.innerHTML = `
-      <div class="msg-answer">
-        <div class="error-card">⚠ ${escHtml(err.message)}</div>
-      </div>`;
+    errEl.innerHTML = `<div class="msg-answer"><div class="error-card">⚠ ${escHtml(err.message)}</div></div>`;
     document.getElementById('messages').appendChild(errEl);
   }
 
@@ -905,12 +1131,10 @@ async function sendQuestion() {
 }
 
 // ─── Render answer ────────────────────────────────────────────────────────────
-function renderAnswer(question, d) {
-  const gbProcessed = d.bytes_processed
-    ? (d.bytes_processed / 1e9).toFixed(4) + ' GB'
-    : '—';
+function renderAnswer(parentMsgId, d) {
+  const gbProcessed = d.bytes_processed ? (d.bytes_processed / 1e9).toFixed(4) + ' GB' : '—';
+  const locale = { pt:'pt-BR', en:'en-US', es:'es-ES', fr:'fr-FR' }[selectedLang || 'pt'] || 'pt-BR';
 
-  // Build table HTML
   let tableHtml = '';
   if (d.data && d.data.length > 0) {
     const cols = Object.keys(d.data[0]);
@@ -918,40 +1142,43 @@ function renderAnswer(question, d) {
     const rows = d.data.slice(0, 200).map(row =>
       `<tr>${cols.map(c => `<td title="${escHtml(String(row[c] ?? ''))}">${escHtml(String(row[c] ?? '—'))}</td>`).join('')}</tr>`
     ).join('');
-    tableHtml = `
-      <div class="data-table-wrap">
-        <table>
-          <thead><tr>${headerCells}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
+    tableHtml = `<div class="data-table-wrap"><table><thead><tr>${headerCells}</tr></thead><tbody>${rows}</tbody></table></div>`;
   }
+
+  const accordionId = 'sql-' + Date.now();
 
   const el = document.createElement('div');
   el.className = 'msg';
   el.innerHTML = `
     <div class="msg-answer">
       <div class="insight-card">
-        <div class="insight-header">
-          <span class="insight-label">✦ Insight da IA</span>
-        </div>
+        <div class="insight-header"><span class="insight-label">${t('insightLabel')}</span></div>
         <div class="insight-text">${escHtml(d.insight)}</div>
       </div>
 
-      <div class="sql-block">
-        <div class="sql-header">
-          <span class="sql-lang">SQL · BigQuery</span>
-          <button class="copy-btn" onclick="copySQL(this)">Copiar</button>
+      <div class="sql-accordion" id="${accordionId}">
+        <button class="sql-toggle" onclick="toggleSQL('${accordionId}')">
+          <div class="sql-toggle-left">
+            <span class="sql-lang">${t('sqlLang')}</span>
+          </div>
+          <div class="sql-toggle-right">
+            <button class="copy-btn" onclick="event.stopPropagation();copySQL(this,'${accordionId}')">${t('copyBtn')}</button>
+            <div class="sql-chevron" id="chev-${accordionId}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </button>
+        <div class="sql-body" id="body-${accordionId}">
+          <pre class="sql-code" id="code-${accordionId}">${escHtml(d.sql_query)}</pre>
         </div>
-        <pre class="sql-code">${escHtml(d.sql_query)}</pre>
       </div>
 
       ${tableHtml}
 
       <div class="meta-row">
-        <div class="meta-item">📋 <b>${d.row_count}</b> linhas</div>
-        <div class="meta-item">💾 <b>${gbProcessed}</b> processado</div>
-        <div class="meta-item">🕐 <b>${new Date(d.executed_at).toLocaleTimeString('pt-BR')}</b></div>
+        <div class="meta-item">📋 <b>${d.row_count}</b> ${t('rowsLabel')}</div>
+        <div class="meta-item">💾 <b>${gbProcessed}</b> ${t('gbLabel')}</div>
+        <div class="meta-item">🕐 <b>${new Date(d.executed_at).toLocaleTimeString(locale)}</b></div>
       </div>
     </div>`;
 
@@ -959,32 +1186,35 @@ function renderAnswer(question, d) {
   scrollBottom();
 }
 
+// ─── SQL accordion ────────────────────────────────────────────────────────────
+function toggleSQL(id) {
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function copySQL(btn, id) {
+  const code = document.getElementById('code-' + id).textContent;
+  navigator.clipboard.writeText(code);
+  btn.textContent = t('copiedBtn');
+  setTimeout(() => btn.textContent = t('copyBtn'), 2000);
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('statQueries').textContent = session.queries;
-  document.getElementById('statRows').textContent    = session.totalRows.toLocaleString('pt-BR');
-  document.getElementById('statBytes').textContent   =
-    session.totalBytes > 0
-      ? (session.totalBytes / 1e9).toFixed(3) + ' GB'
-      : '—';
+  document.getElementById('statRows').textContent    = session.totalRows.toLocaleString();
+  document.getElementById('statBytes').textContent   = session.totalBytes > 0 ? (session.totalBytes / 1e9).toFixed(3) + ' GB' : '—';
 }
 
-function scrollBottom() {
-  const m = document.getElementById('messages');
-  m.scrollTop = m.scrollHeight;
-}
+function scrollBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+
+function fmt(d) { return d.toISOString().split('T')[0]; }
 
 function escHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function copySQL(btn) {
-  const code = btn.closest('.sql-block').querySelector('.sql-code').textContent;
-  navigator.clipboard.writeText(code);
-  btn.textContent = 'Copiado!';
-  setTimeout(() => btn.textContent = 'Copiar', 2000);
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

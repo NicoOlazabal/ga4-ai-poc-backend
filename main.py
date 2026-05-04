@@ -118,6 +118,7 @@ class QuestionRequest(BaseModel):
     date_end:   Optional[str] = None   # YYYYMMDD
     max_rows:   Optional[int] = 500
     language:   Optional[str] = "Português"
+    user_level: Optional[str] = "intermediate"  # beginner | intermediate | advanced
 
 class QueryResponse(BaseModel):
     question:   str
@@ -184,10 +185,37 @@ def execute_bigquery(sql: str, max_rows: int = 500) -> tuple[list, int]:
     return rows, bytes_processed
 
 
-def generate_insight(question: str, sql: str, data: list, language: str = "Português") -> str:
+def generate_insight(question: str, sql: str, data: list, language: str = "Português", user_level: str = "intermediate") -> str:
     """Usa Claude para interpretar os dados e gerar insight no idioma especificado."""
 
     data_sample = json.dumps(data[:50], ensure_ascii=False, default=str)
+
+    level_instructions = {
+        "beginner": """
+O usuário é INICIANTE em Analytics e GA4. Adapte sua resposta:
+- Use linguagem simples, sem jargões técnicos
+- Quando mencionar métricas (sessões, bounce rate, CTR, etc.), explique brevemente o que significa em parênteses
+- Inclua uma seção "📚 Conceitos desta análise" ao final com 2-3 definições curtas dos termos usados
+- Foque em "o que isso significa para o negócio" mais do que nos números técnicos
+- Compare com referências simples (ex: "isso é bom/médio/ruim para este tipo de site")
+""",
+        "intermediate": """
+O usuário tem conhecimento INTERMEDIÁRIO de Analytics e GA4. Adapte sua resposta:
+- Use linguagem profissional mas acessível
+- Pode mencionar métricas padrão sem explicar cada uma
+- Foque em padrões, tendências e ações concretas
+- Inclua contexto de benchmark quando relevante
+""",
+        "advanced": """
+O usuário é AVANÇADO em Analytics e GA4 (analista/desenvolvedor). Adapte sua resposta:
+- Use terminologia técnica sem simplificações
+- Inclua observações sobre a qualidade dos dados ou limitações da query se relevante
+- Pode sugerir segmentações ou análises complementares avançadas
+- Seja direto e técnico, sem explicações básicas
+"""
+    }
+
+    level_context = level_instructions.get(user_level, level_instructions["intermediate"])
 
     prompt = f"""
 Você é um especialista em Analytics e Growth.
@@ -201,13 +229,16 @@ SQL executado:
 DADOS RETORNADOS ({len(data)} linhas, mostrando até 50):
 {data_sample}
 
+PERFIL DO USUÁRIO:
+{level_context}
+
 Com base nesses dados reais:
 1. Responda a pergunta de forma clara e objetiva
 2. Destaque os números mais relevantes
 3. Identifique padrões ou anomalias importantes
 4. Sugira 1-2 ações práticas baseadas nos dados
 
-Responda em {language}, de forma concisa mas completa (máx. 300 palavras).
+Responda em {language}, de forma concisa mas completa (máx. 400 palavras).
 Use emojis com moderação para destacar pontos-chave.
 """
 
@@ -280,7 +311,7 @@ async def ask(req: QuestionRequest, user: str = Depends(get_current_user)):
 
     try:
         # 3. Gera insight com IA
-        insight = generate_insight(req.question, sql, data, req.language or "Português")
+        insight = generate_insight(req.question, sql, data, req.language or "Português", req.user_level or "intermediate")
     except Exception as e:
         insight = f"(Erro ao gerar insight: {e})"
 
