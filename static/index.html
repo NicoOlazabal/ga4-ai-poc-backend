@@ -93,6 +93,40 @@ body::before {
 .choice-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
 .choice-desc  { font-size: 12px; color: var(--text2); line-height: 1.5; }
 
+/* Industry grid — compact tile style */
+.industry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-top: 4px;
+}
+
+.industry-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px 10px;
+  cursor: pointer; transition: all .2s;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center;
+}
+.industry-tile:hover  { border-color: var(--accent); background: rgba(0,229,160,.04); }
+.industry-tile.selected { border-color: var(--accent); background: rgba(0,229,160,.1); }
+
+.industry-emoji { font-size: 22px; line-height: 1; }
+.industry-name  { font-size: 11px; font-weight: 600; color: var(--text2); line-height: 1.3; }
+.industry-tile.selected .industry-name { color: var(--accent); }
+
+/* onboarding step indicator */
+.step-indicator {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+}
+.step-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2); transition: background .2s;
+}
+.step-dot.active  { background: var(--accent); }
+.step-dot.done    { background: rgba(0,229,160,.4); }
+
 .btn-primary {
   background: var(--accent); color: #000;
   border: none; border-radius: 10px;
@@ -439,10 +473,15 @@ tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: h
   </div>
 </div>
 
-<!-- ─── Language overlay ───────────────────────────────────────────────── -->
+<!-- ─── Language overlay (step 1) ─────────────────────────────────────── -->
 <div id="langOverlay" class="overlay" style="display:none">
   <div class="overlay-card" style="max-width:520px">
     <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
     <h1 class="overlay-title">Choose your language</h1>
     <p class="overlay-desc">Select the language for the platform interface and AI responses.</p>
     <div class="choice-grid" style="grid-template-columns:1fr 1fr">
@@ -467,10 +506,15 @@ tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: h
   </div>
 </div>
 
-<!-- ─── Onboarding overlay ─────────────────────────────────────────────── -->
+<!-- ─── Onboarding overlay (step 2 — level) ────────────────────────────── -->
 <div id="onboardingOverlay" class="overlay" style="display:none">
   <div class="overlay-card" style="max-width:500px">
     <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
     <h1 class="overlay-title" id="onboardTitle">Qual é o seu nível?</h1>
     <p class="overlay-desc" id="onboardDesc">Isso nos ajuda a adaptar as respostas e explicações ao seu perfil.</p>
     <div class="choice-grid">
@@ -496,7 +540,25 @@ tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: h
         </div>
       </div>
     </div>
-    <button class="btn-primary" id="onboardNextBtn" onclick="finishOnboarding()" disabled id="onboardNextBtn">Começar →</button>
+    <button class="btn-primary" id="onboardNextBtn" onclick="goToIndustry()" disabled>Continuar →</button>
+  </div>
+</div>
+
+<!-- ─── Industry overlay (step 3 — industry) ──────────────────────────── -->
+<div id="industryOverlay" class="overlay" style="display:none">
+  <div class="overlay-card" style="max-width:580px">
+    <div class="overlay-logo"><div class="logo-dot"></div><span>GA4 · AI Analytics</span></div>
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <h1 class="overlay-title" id="industryTitle">Qual é o seu segmento?</h1>
+    <p class="overlay-desc" id="industryDesc">Otimizamos as queries e análises para os eventos e métricas da sua indústria.</p>
+    <div class="industry-grid" id="industryGrid">
+      <!-- filled by JS -->
+    </div>
+    <button class="btn-primary" id="industryNextBtn" onclick="finishIndustry()" disabled id="industryNextBtn">Começar →</button>
   </div>
 </div>
 
@@ -560,6 +622,12 @@ tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: h
       </div>
     </div>
 
+    <!-- Industry badge -->
+    <div class="sidebar-section" id="industryBadgeSection" style="display:none">
+      <div class="sidebar-label" id="industryBadgeLabel">Segmento</div>
+      <div id="industryBadge" style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px"></div>
+    </div>
+
     <!-- History -->
     <div class="sidebar-label" style="padding:12px 16px 6px" id="historyLabel">Histórico</div>
     <div class="history-list" id="historyList">
@@ -593,6 +661,26 @@ tbody td { padding: 8px 14px; color: var(--text2); max-width: 260px; overflow: h
 </div>
 
 <script>
+// ─── Industries (GA4 categories) ─────────────────────────────────────────────
+const INDUSTRIES = [
+  { id: 'ecommerce',    emoji: '🛍️',  pt: 'E-commerce',        en: 'E-commerce',         es: 'E-commerce',         fr: 'E-commerce' },
+  { id: 'saas',         emoji: '💻',  pt: 'SaaS / Software',   en: 'SaaS / Software',    es: 'SaaS / Software',    fr: 'SaaS / Logiciel' },
+  { id: 'media',        emoji: '📰',  pt: 'Media & Editorial', en: 'Media & Publishing', es: 'Medios y Editorial', fr: 'Médias & Édition' },
+  { id: 'finance',      emoji: '💰',  pt: 'Finanças',          en: 'Finance',            es: 'Finanzas',           fr: 'Finance' },
+  { id: 'education',    emoji: '🎓',  pt: 'Educação',          en: 'Education',          es: 'Educación',          fr: 'Éducation' },
+  { id: 'travel',       emoji: '✈️',  pt: 'Viagens',           en: 'Travel',             es: 'Viajes',             fr: 'Voyages' },
+  { id: 'health',       emoji: '🏥',  pt: 'Saúde',             en: 'Health',             es: 'Salud',              fr: 'Santé' },
+  { id: 'food',         emoji: '🍽️',  pt: 'Alimentação',       en: 'Food & Drink',       es: 'Alimentación',       fr: 'Alimentation' },
+  { id: 'realestate',   emoji: '🏠',  pt: 'Imóveis',           en: 'Real Estate',        es: 'Inmobiliaria',       fr: 'Immobilier' },
+  { id: 'games',        emoji: '🎮',  pt: 'Games',             en: 'Games',              es: 'Videojuegos',        fr: 'Jeux Vidéo' },
+  { id: 'automotive',   emoji: '🚗',  pt: 'Automotivo',        en: 'Automotive',         es: 'Automotriz',         fr: 'Automobile' },
+  { id: 'beauty',       emoji: '💄',  pt: 'Beleza & Fitness',  en: 'Beauty & Fitness',   es: 'Belleza & Fitness',  fr: 'Beauté & Fitness' },
+  { id: 'sports',       emoji: '⚽',  pt: 'Esportes',          en: 'Sports',             es: 'Deportes',           fr: 'Sports' },
+  { id: 'b2b',          emoji: '🏭',  pt: 'B2B / Industrial',  en: 'B2B / Industrial',   es: 'B2B / Industrial',   fr: 'B2B / Industrie' },
+  { id: 'entertainment',emoji: '🎭',  pt: 'Arte & Entret.',    en: 'Entertainment',      es: 'Entretenimiento',    fr: 'Divertissement' },
+  { id: 'other',        emoji: '🔧',  pt: 'Outro',             en: 'Other',              es: 'Otro',               fr: 'Autre' },
+];
+
 // ─── i18n ─────────────────────────────────────────────────────────────────────
 const T = {
   pt: {
@@ -627,7 +715,10 @@ const T = {
     lvlTitleB: "Iniciante", lvlDescB: "Estou começando com Analytics. Prefiro explicações simples com definições dos conceitos.",
     lvlTitleI: "Intermediário", lvlDescI: "Já uso GA4 no dia a dia. Conheço as métricas básicas e quero insights acionáveis.",
     lvlTitleA: "Avançado", lvlDescA: "Sou analista ou desenvolvedor. Prefiro respostas técnicas sem simplificações.",
-    continueBtn: "Começar →",
+    continueBtn: "Continuar →",
+    industryTitle: "Qual é o seu segmento?",
+    industryDesc: "Otimizamos as queries e análises para os eventos e métricas da sua indústria.",
+    industryNextBtn: "Começar →",
     suggestions: [
       "Quantos usuários únicos tivemos nos últimos 30 dias?",
       "Quais são as 10 páginas mais visitadas?",
@@ -671,7 +762,10 @@ const T = {
     lvlTitleB: "Beginner", lvlDescB: "I'm new to Analytics. I prefer simple explanations with concept definitions.",
     lvlTitleI: "Intermediate", lvlDescI: "I use GA4 regularly. I know basic metrics and want actionable insights.",
     lvlTitleA: "Advanced", lvlDescA: "I'm an analyst or developer. I prefer technical responses without simplification.",
-    continueBtn: "Get started →",
+    continueBtn: "Continue →",
+    industryTitle: "What's your industry?",
+    industryDesc: "We optimize queries and analysis for your industry's key events and metrics.",
+    industryNextBtn: "Get started →",
     suggestions: [
       "How many unique users did we have in the last 30 days?",
       "What are the top 10 most visited pages?",
@@ -715,7 +809,10 @@ const T = {
     lvlTitleB: "Principiante", lvlDescB: "Estoy empezando con Analytics. Prefiero explicaciones simples con definiciones.",
     lvlTitleI: "Intermedio", lvlDescI: "Uso GA4 regularmente. Conozco las métricas básicas y quiero insights accionables.",
     lvlTitleA: "Avanzado", lvlDescA: "Soy analista o desarrollador. Prefiero respuestas técnicas sin simplificaciones.",
-    continueBtn: "Comenzar →",
+    continueBtn: "Continuar →",
+    industryTitle: "¿Cuál es tu sector?",
+    industryDesc: "Optimizamos las consultas y análisis para los eventos y métricas de tu industria.",
+    industryNextBtn: "Comenzar →",
     suggestions: [
       "¿Cuántos usuarios únicos tuvimos en los últimos 30 días?",
       "¿Cuáles son las 10 páginas más visitadas?",
@@ -759,7 +856,10 @@ const T = {
     lvlTitleB: "Débutant", lvlDescB: "Je débute en Analytics. Je préfère des explications simples avec des définitions.",
     lvlTitleI: "Intermédiaire", lvlDescI: "J'utilise GA4 régulièrement. Je connais les métriques de base et veux des insights actionnables.",
     lvlTitleA: "Avancé", lvlDescA: "Je suis analyste ou développeur. Je préfère des réponses techniques sans simplification.",
-    continueBtn: "Commencer →",
+    continueBtn: "Continuer →",
+    industryTitle: "Quel est votre secteur ?",
+    industryDesc: "Nous optimisons les requêtes et analyses pour les événements et métriques de votre industrie.",
+    industryNextBtn: "Commencer →",
     suggestions: [
       "Combien d'utilisateurs uniques avons-nous eu ces 30 derniers jours ?",
       "Quelles sont les 10 pages les plus visitées ?",
@@ -779,8 +879,9 @@ let authToken  = null;
 let currentUser = null;
 let authEnabled = false;
 let GOOGLE_CLIENT_ID = '';
-let selectedLang  = localStorage.getItem('ga4_lang')  || null;
-let selectedLevel = localStorage.getItem('ga4_level') || null;
+let selectedLang     = localStorage.getItem('ga4_lang')     || null;
+let selectedLevel    = localStorage.getItem('ga4_level')    || null;
+let selectedIndustry = localStorage.getItem('ga4_industry') || null;
 let chatHistory = JSON.parse(localStorage.getItem('ga4_history') || '[]'); // [{id,question,ts}]
 let activeHistoryId = null;
 let msgMap = {}; // id -> dom element
@@ -808,14 +909,7 @@ async function initApp() {
   if (authEnabled) {
     showLoginOverlay();
   } else {
-    // No auth — go straight to onboarding if not done, else app
-    if (!selectedLang) {
-      showLangOverlay();
-    } else if (!selectedLevel) {
-      showOnboardingOverlay();
-    } else {
-      launchApp();
-    }
+    startOnboardingFlow();
   }
 }
 
@@ -848,10 +942,7 @@ function handleCredentialResponse(response) {
   document.getElementById('userEmail').textContent = currentUser.email;
   document.getElementById('userInfo').style.display = 'flex';
   document.getElementById('loginOverlay').style.display = 'none';
-
-  if (!selectedLang) showLangOverlay();
-  else if (!selectedLevel) showOnboardingOverlay();
-  else launchApp();
+  startOnboardingFlow();
 }
 
 function logout() {
@@ -860,7 +951,17 @@ function logout() {
   localStorage.removeItem('ga4_lang'); localStorage.removeItem('ga4_level');
   if (window.google) google.accounts.id.disableAutoSelect();
   document.getElementById('userInfo').style.display = 'none';
+  selectedLang = null; selectedLevel = null; selectedIndustry = null;
+  localStorage.removeItem('ga4_lang'); localStorage.removeItem('ga4_level'); localStorage.removeItem('ga4_industry');
   showLoginOverlay();
+}
+
+// ─── Onboarding flow router ───────────────────────────────────────────────────
+function startOnboardingFlow() {
+  if (!selectedLang)     { showLangOverlay(); return; }
+  if (!selectedLevel)    { showOnboardingOverlay(); return; }
+  if (!selectedIndustry) { showIndustryOverlay(); return; }
+  launchApp();
 }
 
 // ─── Language selection ───────────────────────────────────────────────────────
@@ -918,9 +1019,46 @@ function selectLevel(lvl) {
   document.getElementById('onboardNextBtn').disabled = false;
 }
 
-function finishOnboarding() {
+function goToIndustry() {
   localStorage.setItem('ga4_level', selectedLevel);
   document.getElementById('onboardingOverlay').style.display = 'none';
+  showIndustryOverlay();
+}
+
+// ─── Industry selection ───────────────────────────────────────────────────────
+function showIndustryOverlay() {
+  const tr = T[selectedLang || 'pt'] || T.pt;
+  document.getElementById('industryTitle').textContent   = tr.industryTitle;
+  document.getElementById('industryDesc').textContent    = tr.industryDesc;
+  document.getElementById('industryNextBtn').textContent = tr.industryNextBtn;
+
+  // Build tiles
+  const grid = document.getElementById('industryGrid');
+  grid.innerHTML = '';
+  INDUSTRIES.forEach(ind => {
+    const name = ind[selectedLang || 'pt'] || ind.en;
+    const tile = document.createElement('div');
+    tile.className = 'industry-tile' + (selectedIndustry === ind.id ? ' selected' : '');
+    tile.id = 'ind-' + ind.id;
+    tile.innerHTML = `<div class="industry-emoji">${ind.emoji}</div><div class="industry-name">${escHtml(name)}</div>`;
+    tile.onclick = () => selectIndustry(ind.id);
+    grid.appendChild(tile);
+  });
+
+  if (selectedIndustry) document.getElementById('industryNextBtn').disabled = false;
+  document.getElementById('industryOverlay').style.display = 'flex';
+}
+
+function selectIndustry(id) {
+  selectedIndustry = id;
+  document.querySelectorAll('.industry-tile').forEach(el => el.classList.remove('selected'));
+  document.getElementById('ind-' + id).classList.add('selected');
+  document.getElementById('industryNextBtn').disabled = false;
+}
+
+function finishIndustry() {
+  localStorage.setItem('ga4_industry', selectedIndustry);
+  document.getElementById('industryOverlay').style.display = 'none';
   launchApp();
 }
 
@@ -944,9 +1082,20 @@ function applyTranslations() {
   document.getElementById('statQueriesLabel').textContent= tr.statQueriesLabel;
   document.getElementById('statRowsLabel').textContent   = tr.statRowsLabel;
   document.getElementById('statBytesLabel').textContent  = tr.statBytesLabel;
-  document.getElementById('historyLabel').textContent    = tr.historyLabel;
-  document.getElementById('historyEmpty').textContent    = tr.historyEmpty;
-  document.getElementById('welcomeTitle').textContent    = tr.welcomeTitle;
+  document.getElementById('historyLabel').textContent       = tr.historyLabel;
+  document.getElementById('historyEmpty').textContent       = tr.historyEmpty;
+  document.getElementById('industryBadgeLabel').textContent = tr.industryTitle || 'Segmento';
+  document.getElementById('welcomeTitle').textContent       = tr.welcomeTitle;
+
+  // Show industry badge in sidebar
+  if (selectedIndustry) {
+    const ind = INDUSTRIES.find(i => i.id === selectedIndustry);
+    if (ind) {
+      const name = ind[selectedLang || 'pt'] || ind.en;
+      document.getElementById('industryBadge').innerHTML = `<span>${ind.emoji}</span><span>${escHtml(name)}</span>`;
+      document.getElementById('industryBadgeSection').style.display = 'block';
+    }
+  }
   document.getElementById('welcomeDesc').textContent     = tr.welcomeDesc;
   document.getElementById('questionInput').placeholder   = tr.inputPlaceholder;
   document.getElementById('inputHint').textContent       = tr.inputHint;
@@ -1103,7 +1252,8 @@ async function sendQuestion() {
         date_end:   dateEnd   || null,
         max_rows:   500,
         language:   t('langCode'),
-        user_level: selectedLevel || 'intermediate'
+        user_level: selectedLevel    || 'intermediate',
+        industry:   selectedIndustry || 'other'
       })
     });
 
